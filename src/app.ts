@@ -28,7 +28,8 @@ class App {
   }
 
   private StartWeSocketConnection = () => {
-    const io = SocketIO(this.server);    
+    const io = SocketIO(this.server);
+    io.origins('*:*');
     this.webSocket = new WebSocket(io, this.gameObservable);
   }
 
