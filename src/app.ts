@@ -2,35 +2,44 @@ import express from 'express';
 import * as http from 'http';
 import SocketIO from 'socket.io';
 import { Server } from 'http';
-import { SocketConnection } from './connection/socket-connection';
-import { Game } from './game/game';
+import { WebSocket } from '../src/core/web-socket';
+import { Game } from './core/game';
+import { GameObservable } from './core/game-observable';
+import { WebSocketObservable } from './core/web-socket-observable';
 
 const port = process.env.PORT || 3000
 
 class App {
   private _app: express.Application;
   private server: Server;
-  private socketConnection: SocketConnection;
+  private webSocket: WebSocket;
   private game: Game;
+ 
+  private gameObservable: GameObservable;
+  private webSocketObservable: WebSocketObservable;
 
   constructor() {
     this._app = express();
+    this.gameObservable = new GameObservable();
+    this.webSocketObservable = new WebSocketObservable();
+
     this.server = http.createServer(this._app);
-    this.initSocket();
+    this.StartWeSocketConnection();
   }
 
-  private initSocket = () => {
-    const io = SocketIO(this.server);
-    this.socketConnection = new SocketConnection(io);
+  private StartWeSocketConnection = () => {
+    const io = SocketIO(this.server);    
+    this.webSocket = new WebSocket(io, this.gameObservable);
   }
 
-  private initGame = () => {
-    if (!this.game) {
-      this.game = new Game();
-    }
+  private StartGameServer = () => {
+    this.game = new Game(this.webSocketObservable);
+
+    this.gameObservable.attach(this.game);
+    this.webSocketObservable.attach(this.webSocket);
+    
+
     this.game.start();
-
-    // subscribe socket connection new player
   }
 
   public listen() {
@@ -38,8 +47,8 @@ class App {
       console.log('Running server on port %s', port);
     });
 
-    this.initGame();
-    this.socketConnection.init();
+    this.StartGameServer();
+    this.webSocket.openConnection();
   }
 }
 
