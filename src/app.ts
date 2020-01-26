@@ -2,7 +2,7 @@ import express from 'express';
 import * as http from 'http';
 import SocketIO from 'socket.io';
 import { Server } from 'http';
-import { WebSocket } from '../src/core/web-socket';
+import { WebSocket } from './core/web-socket';
 import { Game } from './core/game';
 import { GameObservable } from './core/game-observable';
 import { WebSocketObservable } from './core/web-socket-observable';
